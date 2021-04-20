@@ -1,36 +1,40 @@
-
-        function domWalk(start, end, container, func){
+//accepts Range object 
+function domWalk({startContainer:start, endContainer:end, commonAncestorContainer:container}, func){
           let stop = false;
           let exclude = [];
 
           checkNode(start);
 
           function checkNode(e){
-            if(!e || e == container|| exclude.some(el=>el == e) || stop)return;
+            if(!e || exclude.some(el=>el == e) || !e.textContent.trim() || stop)return;
+            
+            exclude.push(e);
+
             if(func(e)){
+              //l('FOUND', e);
               stop = true;
               return;
             }
             if(e == end){
-              if(e.nodeName == '#text')checkNode(e.parentElement);
+              if(e == start)func(e.parentElement);
+
+              //l('END', e);
               stop = true;
-              //l('END', e)
               return;
             }
 
-            exclude.push(e);
+            
             //l(e);
 
             e.childNodes.forEach(checkNode);
-            checkNode(e.nextElementSibling);
+            checkNode(e.nextSibling);
 
-            if(e.nodeName != '#text'){
-              let p = e.previousElementSibling;
-              while(p){
-                exclude.push(p);
-                p = p.previousElementSibling;
-              }
+            let prev = e.previousSibling;
+            while(prev){
+              exclude.push(prev);
+              prev = prev.previousSibling;
             }
-            checkNode(e.parentElement);
+            
+            if(e != container)checkNode(e.parentElement);
           }
         }
